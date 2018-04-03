@@ -76,11 +76,13 @@ func NewClient(url string, auth *BasicAuth, tr *http.Transport) *Client {
 	}
 }
 
+// UseSoap11 sets SOAP version to 1.1
 func (c *Client) UseSoap11() {
 	c.SoapVersion = SoapVersion11
 	c.ContentType = SoapContentType11
 }
 
+// UseSoap12 sets SOAP version to 1.2
 func (c *Client) UseSoap12() {
 	c.SoapVersion = SoapVersion12
 	c.ContentType = SoapContentType12
@@ -127,9 +129,9 @@ func (c *Client) Call(soapAction string, request, response interface{}) (httpRes
 	if tr == nil {
 		tr = http.DefaultTransport.(*http.Transport)
 	}
-	client := &http.Client{Transport: tr}
-	l("POST to", c.url, "with\n", string(xmlBytes))
-	l("Header")
+	client := &http.Client{Transport: tr, Timeout: time.Minute}
+	l("## POST TO", c.url, "WITH\n\n", string(xmlBytes), "\n")
+	l("## HEADER:\n")
 	LogJSON(req.Header)
 	httpResponse, err = client.Do(req)
 	if err != nil {
@@ -138,13 +140,13 @@ func (c *Client) Call(soapAction string, request, response interface{}) (httpRes
 
 	defer httpResponse.Body.Close()
 
-	l("\n\n## Response header:\n", httpResponse.Header)
+	l("## RESPONSE HEADER:\n\n", httpResponse.Header, "\n")
 
 	mediaType, params, err := mime.ParseMediaType(httpResponse.Header.Get("Content-Type"))
 	if err != nil {
-		l("WARNING:", err)
+		l("## WARNING:", err)
 	}
-	l("MIMETYPE:", mediaType)
+	l("## MIMETYPE:", mediaType)
 	var rawbody = []byte{}
 	if strings.HasPrefix(mediaType, "multipart/") { // MULTIPART MESSAGE
 		mr := multipart.NewReader(httpResponse.Body, params["boundary"])
@@ -162,14 +164,14 @@ func (c *Client) Call(soapAction string, request, response interface{}) (httpRes
 			if err != nil {
 				return nil, err
 			}
-			if strings.HasPrefix(string(slurp), "<soap") || strings.HasPrefix(string(slurp), "<SOAP") {
+			if strings.HasPrefix(string(slurp), "<env:Envelope") {
 				rawbody = slurp
 				foundSoap = true
 				break
 			}
 		}
 		if !foundSoap {
-			return nil, errors.New("Multipart message does contain a soapy part.")
+			return nil, errors.New("Multipart message does contain a soapy part")
 		}
 	} else { // SINGLE PART MESSAGE
 		rawbody, err = ioutil.ReadAll(httpResponse.Body)
@@ -182,15 +184,15 @@ func (c *Client) Call(soapAction string, request, response interface{}) (httpRes
 			return // Empty responses are ok. Sometimes Sometimes only a Status 200 or 202 comes back
 		}
 		// There is a message body, but it's not SOAP. We cannot handle this!
-		if !(strings.Contains(string(rawbody), "<soap") || strings.Contains(string(rawbody), "<SOAP")) {
+		if !strings.Contains(string(rawbody), "<env:Envelope") {
 			l("This is not a SOAP-Message: \n" + string(rawbody))
 			return nil, errors.New("This is not a SOAP-Message: \n" + string(rawbody))
 		}
-		l("RAWBODY\n", string(rawbody))
+		l("## RAWBODY:\n\n", string(rawbody))
 	}
 
 	// We have an empty body or a SOAP body
-	l("\n\n## Response body:\n", string(rawbody))
+	l("## RESPONSE BODY:\n\n", string(rawbody))
 
 	// Our structs for Envelope, Header, Body and Fault are tagged with namespace for SOAP 1.1
 	// Therefore we must adjust namespaces for incoming SOAP 1.2 messages

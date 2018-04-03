@@ -8,6 +8,7 @@ import (
 
 // SOAP 1.1 and SOAP 1.2 must expect different ContentTypes and Namespaces.
 
+// Predefined constants
 const (
 	SoapVersion11 = "1.1"
 	SoapVersion12 = "1.2"
@@ -28,6 +29,7 @@ func l(m ...interface{}) {
 	}
 }
 
+// LogJSON logs into JSON output
 func LogJSON(v interface{}) {
 	if Verbose {
 		json, err := json.MarshalIndent(v, "", " ")

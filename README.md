@@ -1,8 +1,15 @@
 # SOAP is dead - long live SOAP
 
-First of all do not write SOAP services if you can avoid it! It is over.
+__WARNING!__ First of all this is a fork of the original package.
 
-If you can not avoid it this package might help.
+It made in hope to adapt it for an immediate need for a working SOAP client.
+
+I made some changes to get it work with the specific SOAP-server so there are no guarantees that it will be suitable for anything else.
+
+You have been warned.
+
+>First of all do not write SOAP services if you can avoid it! It is over.
+>If you can not avoid it this package might help.
 
 ## Service
 

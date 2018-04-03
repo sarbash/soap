@@ -62,11 +62,13 @@ func NewServer() *Server {
 	return s
 }
 
+// UseSoap11 sets SOAP version to 1.1
 func (s *Server) UseSoap11() {
 	s.SoapVersion = SoapVersion11
 	s.ContentType = SoapContentType11
 }
 
+// UseSoap12 sets SOAP version to 1.2
 func (s *Server) UseSoap12() {
 	s.SoapVersion = SoapVersion12
 	s.ContentType = SoapContentType12
